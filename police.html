@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style type="text/css">
+        /* Set the size of the div element 
+        that contains the map */
+        #map {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Hide scrollbars */
+        }
+        
+        /* Adjust the styles for the navigation bar and drawer icon */
+        nav{
+            width: 100%;
+            height: 10vh;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: transparent; /* Make the background transparent */
+            z-index: 1;
+        }
+
+        .mobile-nav-open-icon{
+            font-size: 2rem;
+            cursor: pointer;
+            margin-right: 2rem;
+            color: white; /* Set the color of the icon to white */
+            margin-left:3rem;
+        }
+
+        /* Adjust the styles for the drawer */
+        .sidenav-container {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 3;
+            top: 0;
+            left: 0;
+            background-color: rgba(17, 17, 17, 0.8); /* Set a transparent background */
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidenav-container a {
+            text-decoration: none;
+            font-size: 1rem;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+            margin: 10px 0;
+        }
+
+        .sidenav-container a:hover {
+            color: #f1f1f1;
+        }
+
+        .sidenav-container .closebtn {
+            font-size: 3rem;
+            font-weight: 700;
+            color:#ffffff ;
+            padding-right: 1rem;
+        } 
+
+        .sidenav-container .drawer-close-button{
+            height: 3rem;
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .backdrop-container{
+            display: none;
+            position: fixed;
+            z-index: 2; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4);  
+            -webkit-animation: fadeIn 1.2s ease-in-out;
+            animation: fadeIn 1.2s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    
+    <!--The div element for the map -->
+    <div id="map"></div>
+
+    <!-- Drawer -->
+    <div id="mySidenav" class="sidenav-container">
+        <span class="drawer-close-button">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        </span>
+        <a href="#home" onclick="closeNav()" id="home-link">Live Crimes</a>
+        <a href="#about" onclick="closeNav()" id="about-link">FIR</a>
+        <a href="#works" onclick="closeNav()" id="works-link">Case Files</a>
+        <a href="#contact" onclick="closeNav()" id="contact-link">Reports</a>
+    </div>
+    
+    <!-- Backdrop -->
+    <div class="backdrop-container" id="backdrop"></div>
+    
+    <!-- Navigation -->
+    <nav>
+        <span onclick="openNav()" class="mobile-nav-open-icon">&#9776;</span>
+    </nav>
+
+    <!--Add a script by google -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqqsB3lY61y4RTJ5NIZsXi69PEU8xAKhg&callback=initMap&libraries=&v=weekly" async></script>
+
+    <script>
+        // Initialize and add the map
+        function initMap() {
+            // The location of Geeksforgeeks office
+            const gfg_office = {
+                lat: 13.083484289945178,
+                lng:  80.27047752497438,
+            };
+
+            // Create the map, centered at gfg_office
+            const map = new google.maps.Map(
+                document.getElementById("map"), {
+                    // Set the zoom of the map
+                    zoom: 13,
+                    center: gfg_office,
+                    // Apply the JSON style
+                    styles:[
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#1d2c4d"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#8ec3b9"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#1a3646"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.country",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#4b6878"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#64779e"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.province",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#4b6878"
+      }
+    ]
+  },
+  {
+    "featureType": "landscape.man_made",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#334e87"
+      }
+    ]
+  },
+  {
+    "featureType": "landscape.natural",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#023e58"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#283d6a"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#6f9ba5"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#1d2c4d"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.business",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#023e58"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#3C7680"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#304a7d"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#98a5be"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#1d2c4d"
+      }
+    ]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#2c6675"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#255763"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#b0d5ce"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#023e58"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#98a5be"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#1d2c4d"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.line",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#283d6a"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.station",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#3a4762"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#0e1626"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#4e6d70"
+      }
+    ]
+  }
+],
+disableDefaultUI: true
+                });
+        }
+
+        function openNav() {
+            document.getElementById("mySidenav").style.width = "20%";
+            document.getElementById('backdrop').style.display = "block";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidenav").style.width = "0";
+            document.getElementById('backdrop').style.display = "none";
+        }
+    </script>
+</body>
+
+</html>

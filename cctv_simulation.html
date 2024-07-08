@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCTV Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: #fff;
+            padding: 20px; /* Add padding for spacing */
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px; /* Added margin for spacing */
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px #0069d9;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button:active {
+            background-color: #0056b3;
+            box-shadow: 0 2px #0056b3;
+            transform: translateY(2px);
+        }
+        .scrollable-window {
+            max-width: 1400px; /* Set maximum width */
+            margin: 0 auto; /* Center horizontally */
+            overflow: hidden; /* Hide overflowing content */
+            text-align: left; /* Align videos to the left */
+        }
+        .video-container {
+            display: inline-block; /* Display videos inline */
+            margin: 10px; /* Add spacing between videos */
+            vertical-align: top; /* Align videos at the top */
+            width: calc(25% - 20px); /* Set width to 25% of container minus margins */
+            border: 1px solid #444; /* Add border to each video container */
+            padding: 10px; /* Add padding for spacing */
+            box-sizing: border-box; /* Include border in width calculation */
+        }
+        video {
+            width: 100%; /* Set video width to 100% of container */
+            height: auto; /* Set video height to auto to maintain aspect ratio */
+            margin-bottom: 10px; /* Add margin at the bottom of video for spacing */
+        }
+        .coordinates {
+            margin-bottom: 10px; /* Add margin at the bottom of coordinates for spacing */
+        }
+        .delete-button {
+            display: block;
+            padding: 5px 10px;
+            background-color: #ff3333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
+        }
+        /* Coordinates Input Popup Styles */
+        .coordinates-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999; /* Ensure it's above other content */
+        }
+        .coordinates-popup-content {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CCTV Control Panel</h1>
+    <button id="addCCTVButton" class="button">Add CCTV</button>
+    <button id="startButton" class="button">Start</button>
+    
+    <div class="scrollable-window">
+        <!-- No content inside initially -->
+    </div>
+
+    <!-- Coordinates Input Popup -->
+    <div id="coordinatesPopup" class="coordinates-popup" style="display: none;">
+        <div class="coordinates-popup-content">
+            <h2>Enter Coordinates</h2>
+            <label for="coordinates">Latitude,Longitude:</label>
+            <input type="text" id="coordinates" name="coordinates">
+            <br>
+            <button id="confirmCoordinatesButton" class="button">Confirm</button>
+        </div>
+    </div>
+
+    <script>
+        // Variable to keep track of the serial number
+        var serialNumber = 1;
+
+        document.getElementById("addCCTVButton").addEventListener("click", function() {
+            // Show coordinates input popup
+            document.getElementById("coordinatesPopup").style.display = "block";
+        });
+
+        document.getElementById("confirmCoordinatesButton").addEventListener("click", function() {
+            // Get coordinates from input field
+            var coordinatesInput = document.getElementById("coordinates").value.trim();
+            var coordinatesArray = coordinatesInput.split(",");
+            var latitude = coordinatesArray[0].trim();
+            var longitude = coordinatesArray[1].trim();
+
+            // Hide coordinates input popup
+            document.getElementById("coordinatesPopup").style.display = "none";
+
+            // Prompt user to select a video file
+            var input = document.createElement("input");
+            input.type = "file";
+            input.accept = "video/*";
+            input.multiple = true; // Allow multiple file selection
+            input.onchange = function(event) {
+                var files = event.target.files;
+                
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    var videoUrl = URL.createObjectURL(file);
+
+                    // Create video element
+                    var video = document.createElement("video");
+                    video.src = videoUrl;
+                    video.loop = true; // Loop the video
+                    video.autoplay = true; // Autoplay the video
+                    video.controls = false; // Set video controls to false by default
+
+                    // Create coordinates element
+                    var coordinatesElement = document.createElement("div");
+                    coordinatesElement.textContent = "Latitude: " + latitude + ", Longitude: " + longitude;
+                    coordinatesElement.classList.add("coordinates");
+
+                    // Create serial number element
+                    var serialNumberElement = document.createElement("div");
+                    serialNumberElement.textContent = "Serial No: " + serialNumber++;
+
+                    // Create delete button
+                    var deleteButton = document.createElement("button");
+                    deleteButton.textContent = "Delete";
+                    deleteButton.classList.add("delete-button");
+                    deleteButton.onclick = function() {
+                        this.parentNode.remove(); // Remove video container when delete button is clicked
+                    };
+
+                    // Create video container
+                    var videoContainer = document.createElement("div");
+                    videoContainer.classList.add("video-container");
+                    videoContainer.appendChild(serialNumberElement);
+                    videoContainer.appendChild(video);
+                    videoContainer.appendChild(coordinatesElement);
+                    videoContainer.appendChild(deleteButton);
+
+                    // Append video container to scrollable window
+                    var scrollableWindow = document.querySelector(".scrollable-window");
+                    scrollableWindow.appendChild(videoContainer);
+                }
+                // Reset input value to allow selecting the same files again
+                input.value = null;
+            };
+            input.click();
+        });
+    </script>
+</body>
+</html>
